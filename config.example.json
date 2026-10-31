@@ -1,10 +1,10 @@
-{
+
+ {
   "sources": [
-    {"type": "greenhouse", "company": "ExampleCo", "token": "exampleco"},
-    {"type": "lever", "company": "ExampleLab", "slug": "examplelab"},
-    {"type": "generic", "company": "Accenture (verify endpoint first)", "url": "https://example.com/careers/api/jobs",
+    {"type": "generic", "company": "Accenture", "url": "https://www.accenture.com/ie-en/careers/jobsearch",
      "list_path": "data", "fields": {"id": "id", "title": "title", "location": "location", "url": "url", "description": "description"}}
   ],
   "default_prefs": {"levels": ["entry", "mid"], "keywords": ["cloud", "devops", "linux", "support", "python"], "exclude": ["sales"], "require_visa": false},
   "subscribers": []
+
 }
