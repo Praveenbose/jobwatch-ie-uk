@@ -1,0 +1,26 @@
+name: jobwatch
+on:
+  schedule:
+    - cron: "0 */6 * * *"      # every 6 hours
+  workflow_dispatch: {}
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - name: Restore memory of seen jobs
+        uses: actions/cache@v4
+        with:
+          path: data/seen.db
+          key: seen-${{ github.run_id }}
+          restore-keys: seen-
+      - name: Run jobwatch
+        env:
+          PYTHONPATH: src
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          JOBWATCH_SUBSCRIBERS: ${{ secrets.JOBWATCH_SUBSCRIBERS }}
+        run: python -m jobwatch --config config.example.json
