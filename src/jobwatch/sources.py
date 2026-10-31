@@ -9,7 +9,7 @@ from typing import Any, Dict, List
 
 from .models import Job
 
-USER_AGENT = "jobwatch/0.1 (personal job alert project; contact: your-email@example.com)"
+USER_AGENT = "jobwatch/0.1 (personal job alert project; contact: praveenchandrabose2001@gmail.com)"
 
 
 def fetch_json(url: str, timeout: int = 20, retries: int = 2) -> Any:
