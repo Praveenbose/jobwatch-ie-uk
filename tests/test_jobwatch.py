@@ -4,6 +4,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "src"))
 from jobwatch.filters import classify_level, evaluate, in_target_location, visa_signal
 from jobwatch.models import Job
 from jobwatch.notifier import build_digest
+from jobwatch import sources
 from jobwatch.sources import parse_generic, parse_greenhouse, parse_lever
 from jobwatch.storage import SeenStore
 
@@ -27,6 +28,29 @@ class ParseTests(unittest.TestCase):
         cfg = {"company": "Acme", "list_path": "data.jobs",
                "fields": {"id": "id", "title": "t", "location": "loc.city", "url": "link"}}
         self.assertEqual(parse_generic(data, cfg)[0].location, "Belfast")
+
+
+class PagingTests(unittest.TestCase):
+    def test_pagination_stops_on_empty_page(self):
+        calls = []
+        def fake(url, **kw):
+            calls.append((url, kw.get("method"), kw.get("body")))
+            page = kw["body"]["page"]
+            return {"jobs": [{"id": page, "t": "Cloud Support", "l": "Cork", "u": "/j/%d" % page}]} if page <= 2 else {"jobs": []}
+        original, sleeper = sources.fetch_json, sources.time.sleep
+        sources.fetch_json, sources.time.sleep = fake, lambda s: None
+        try:
+            cfg = {"company": "Acme", "url": "https://x/api", "method": "POST", "body": {"country": "IE"},
+                   "list_path": "jobs", "url_prefix": "https://x",
+                   "fields": {"id": "id", "title": "t", "location": "l", "url": "u"},
+                   "pagination": {"type": "page", "param": "page", "start": 1, "max_pages": 5}}
+            jobs = sources.fetch_generic(cfg)
+        finally:
+            sources.fetch_json, sources.time.sleep = original, sleeper
+        self.assertEqual([j.job_id for j in jobs], ["1", "2"])
+        self.assertEqual(jobs[0].url, "https://x/j/1")
+        self.assertEqual(calls[0][2], {"country": "IE", "page": 1})
+        self.assertEqual(len(calls), 3)   # page 3 was empty, so it stopped
 
 
 class FilterTests(unittest.TestCase):
